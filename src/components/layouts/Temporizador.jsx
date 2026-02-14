@@ -8,7 +8,7 @@ const ProgressCircle = ({ value, max, unit }) => {
   const strokeDashoffset = circumference - (value / max) * circumference;
 
   return (
-    <div className="progress-circle"style={{ textAlign: "center", margin: "0 10px" }}>
+    <div className="progress-circle" style={{ textAlign: "center", margin: "0 10px" }}>
       <svg width="120" height="120" viewBox="0 0 120 120">
         <circle
           cx="60"
@@ -23,7 +23,7 @@ const ProgressCircle = ({ value, max, unit }) => {
           cy="60"
           r="45"
           fill="none"
-          stroke="#ff0080"
+          stroke="#dc143c"
           strokeWidth="6"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
@@ -33,7 +33,7 @@ const ProgressCircle = ({ value, max, unit }) => {
       <div style={{ 
         position: 'relative', 
         top: '-80px', 
-        color: "#ff0080", 
+        color: "#dc143c", 
         fontSize: "2em", 
         fontWeight: "bold" 
       }}>
@@ -45,70 +45,52 @@ const ProgressCircle = ({ value, max, unit }) => {
 };
 
 // Componente principal
-export default function Temporizador() {
-  const [time, setTime] = useState({
-    years: 2,
-    months: 4,
-    days: 17,
-    hours: 2,
-    minutes: 2,
-    seconds: 20
-  });
-
+export default function Temporizador({ time, onTimeUpdate }) {
   useEffect(() => {
+    const START_DATE = new Date('2024-09-24T19:34:00');
+    
+    const calculateTimeSince = () => {
+      const now = new Date();
+      
+      let years = now.getFullYear() - START_DATE.getFullYear();
+      let months = now.getMonth() - START_DATE.getMonth();
+      let days = now.getDate() - START_DATE.getDate();
+      let hours = now.getHours() - START_DATE.getHours();
+      let minutes = now.getMinutes() - START_DATE.getMinutes();
+      let seconds = now.getSeconds() - START_DATE.getSeconds();
+      
+      // Ajustes para valores negativos
+      if (seconds < 0) {
+        seconds += 60;
+        minutes--;
+      }
+      if (minutes < 0) {
+        minutes += 60;
+        hours--;
+      }
+      if (hours < 0) {
+        hours += 24;
+        days--;
+      }
+      if (days < 0) {
+        const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += prevMonth.getDate();
+        months--;
+      }
+      if (months < 0) {
+        months += 12;
+        years--;
+      }
+      
+      return { years, months, days, hours, minutes, seconds };
+    };
+
     const timer = setInterval(() => {
-      setTime(prev => {
-        // Incrementa segundos
-        let newSeconds = prev.seconds + 1;
-        let newMinutes = prev.minutes;
-        let newHours = prev.hours;
-        let newDays = prev.days;
-        let newMonths = prev.months;
-        let newYears = prev.years;
-
-        // Verifica rollover de segundos
-        if (newSeconds >= 60) {
-          newSeconds = 0;
-          newMinutes += 1;
-        }
-
-        // Verifica rollover de minutos
-        if (newMinutes >= 60) {
-          newMinutes = 0;
-          newHours += 1;
-        }
-
-        // Verifica rollover de horas
-        if (newHours >= 24) {
-          newHours = 0;
-          newDays += 1;
-        }
-
-        // Verifica rollover de dias (considerando 30 dias por mês)
-        if (newDays > 30) {
-          newDays = 1;
-          newMonths += 1;
-        }
-
-        // Verifica rollover de meses
-        if (newMonths > 12) {
-          newMonths = 1;
-          newYears += 1;
-        }
-
-        return {
-          years: newYears,
-          months: newMonths,
-          days: newDays,
-          hours: newHours,
-          minutes: newMinutes,
-          seconds: newSeconds
-        };
-      });
+      onTimeUpdate(calculateTimeSince());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [onTimeUpdate]);
 
     useEffect(() => {
     ScrollReveal().reveal('.progress-circle', {
